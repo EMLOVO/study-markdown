@@ -200,9 +200,10 @@ Tr = 43.83~\text{Erlangs}
 
 ### 12.1 外圈 cell 數
 
-\[
+$$
 N_p = 6\sqrt{\frac{10}{3}} - 3 \approx 8
-\]
+$$
+
 
 ### 12.2 cell 類型統計
 
