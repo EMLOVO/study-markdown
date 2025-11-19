@@ -14,4 +14,6 @@ $$
 Tr_{LU}^{(j)} = \lambda_{LU}^{(j)} \left[ \sum_{i=1}^{3} P^{(i,j)}_{LU} t^{(i)}_{LU} \right]
 $$
 
-The LU arrival rate is \( \lambda = \frac{v \rho L}{\pi} \).
+The LU arrival rate is
+
+\( \lambda = \frac{v \rho L}{\pi} \).
