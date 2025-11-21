@@ -1,3 +1,12 @@
+---
+layout: default
+title: OFDM Technical Summary
+---
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
 # OFDM Technical Summary  
 (Orthogonal Frequency Division Multiplexing — 教科書級完整版)
 
