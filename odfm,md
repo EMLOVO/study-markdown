@@ -1,0 +1,274 @@
+# OFDM Summary
+
+（Orthogonal Frequency Division Multiplexing）
+
+本文件為 OFDM（正交分頻多工）的完整技術總結，可作為 LTE/WiFi/5G 課程或 GitHub 技術文件使用。
+**所有英文內容為技術說明，中文為清晰易懂的解釋。**
+
+---
+
+## 📚 Table of Contents
+
+* [1. Introduction](#1-introduction)
+* [2. Single-Carrier Limitations](#2-single-carrier-limitations)
+* [3. The Idea of OFDM](#3-the-idea-of-ofdm)
+* [4. Orthogonality](#4-orthogonality)
+* [5. Time Domain vs Frequency Domain](#5-time-domain-vs-frequency-domain)
+* [6. FFT/IFFT in OFDM](#6-ffti fft-in-ofdm)
+* [7. Subcarriers & Resource Elements](#7-subcarriers--resource-elements)
+* [8. OFDM in LTE](#8-ofdm-in-lte)
+* [9. Multipath & Cyclic Prefix](#9-multipath--cyclic-prefix)
+* [10. Resource Block Structure](#10-resource-block-structure)
+* [11. Random Access & Fast Retrial Algorithm](#11-random-access--fast-retrial-algorithm)
+* [12. Mathematical Analysis](#12-mathematical-analysis)
+* [13. Summary Diagram](#13-summary-diagram)
+* [14. References](#14-references)
+
+---
+
+# 1. Introduction
+
+**Orthogonal Frequency Division Multiplexing (OFDM)** is a multi-carrier modulation scheme where data is transmitted over many orthogonal subcarriers.
+
+中文解說：
+OFDM 是一種「把資料分散到很多小頻道」上傳送的技術，每個小頻道叫 subcarrier，彼此互不干擾（正交）。
+
+---
+
+# 2. Single-Carrier Limitations
+
+High-rate transmission → short symbol duration → strong ISI.
+
+中文解說：
+如果單載波要傳高速資料，符號時間會變很短 Ts ↓，於是「前一個符號的尾巴」會干擾下一個（ISI 問題）。
+
+ASCII 示意：
+
+```
+time →
+|symbol1|symbol2|
+       ↑ overlap = ISI
+```
+
+---
+
+# 3. The Idea of OFDM
+
+Instead of sending one fast symbol stream, OFDM splits it into many parallel low-rate streams.
+
+中文解說：
+OFDM 把高速資料「切成很多慢速小流」，每流給一個 subcarrier。每個 subcarrier 都慢，所以不怕 ISI。
+
+---
+
+# 4. Orthogonality
+
+Two subcarriers are orthogonal if:
+
+$$
+\int_0^T \sin(2\pi f_k t)\sin(2\pi f_m t) dt = 0,\quad k \neq m
+$$
+
+中文解說：
+只要 subcarrier 之間頻率差剛好是固定倍數，它們的積分就會是 0 → 完全不干擾。
+
+ASCII：
+
+```
+sinc 1:  |~~~~peak~~~~|
+sinc 2:        |~~~~peak~~~~|
+sinc zero point falls at other's peak → no interference
+```
+
+---
+
+# 5. Time Domain vs Frequency Domain
+
+FFT transforms time → frequency.
+IFFT transforms frequency → time.
+
+中文解說：
+FFT 把時域波形拆成頻率成分；IFFT 把 subcarriers 加起來變成實際 OFDM 波形。
+
+---
+
+# 6. FFT/IFFT in OFDM
+
+OFDM transmitter:
+
+```
+bits → QPSK/QAM mapping → IFFT → add Cyclic Prefix → DAC → TX
+```
+
+Receiver:
+
+```
+RX → remove CP → FFT → demapping → bits
+```
+
+中文解說：
+發送端用 IFFT 合成 OFDM；接收端用 FFT 拆開 subcarriers。
+
+---
+
+# 7. Subcarriers & Resource Elements
+
+**1 Resource Element (RE)** = 1 subcarrier × 1 OFDM symbol.
+
+Modulation bits per symbol:
+
+| Modulation | Bits |
+| ---------- | ---- |
+| QPSK       | 2    |
+| 16QAM      | 4    |
+| 64QAM      | 6    |
+
+中文解說：
+一個 RE 就是一個「小格子」。調變越高 bits 越多。
+
+---
+
+# 8. OFDM in LTE
+
+LTE uses:
+
+* **Subcarrier spacing = 15 kHz**
+* **OFDM symbol duration = 66.67 µs**
+
+中文：
+LTE 所有 subcarrier 永遠相隔 15 kHz，不會變。頻寬變大 → subcarrier 數變多。
+
+---
+
+# 9. Multipath & Cyclic Prefix
+
+Multipath causes ISI.
+Cyclic Prefix (CP) solves it by copying the tail of the symbol.
+
+ASCII：
+
+```
+|---symbol---|
+|CP|
+```
+
+中文解說：
+CP 是「複製一段尾巴到前面」，讓多路徑的延遲不會破壞正交性。
+
+---
+
+# 10. Resource Block Structure
+
+1 RB = **12 subcarriers × 7 symbols = 84 RE**
+
+ASCII：
+
+```
+(12 SC)
+---------------
+|x|x|x|x|x|x|
+|x|x|x|x|x|x|  → 7 symbols
+|x|x|x|x|x|x|
+---------------
+```
+
+中文解說：
+RB 是 LTE 中最小可排程單位，scheduler 只會分 RB，不會分 RE。
+
+---
+
+# 11. Random Access & Fast Retrial Algorithm
+
+RACH is used for:
+
+* initial access
+* resource request
+* reestablish connection
+
+Fast retrial algorithm:
+
+* Based on slotted Aloha
+* UE retries in **next slot**
+* UE chooses **different frequency channel**
+* After M retries → random backoff
+
+中文解說：
+RACH 是按門鈴。UE 在撞車（collision）後：
+
+1. 下一個 slot 馬上重試（fast）
+2. 換另一條頻率（spread in frequency）
+3. 超過 M 次才 backoff（等一下再試）
+
+ASCII：
+
+```
+time →
+freq ↓
+[ ] [x] [ ]  ← collision
+     ↓ retry
+[ ] [ ] [x]  ← moved to new freq
+```
+
+---
+
+# 12. Mathematical Analysis
+
+Arrival rate:
+
+$$
+\lambda_T = \lambda + p\gamma\lambda_T
+$$
+
+Collision probability:
+
+$$
+p = 1 - e^{-\lambda_T/N}
+$$
+
+Fast retrial ratio:
+
+$$
+\gamma = \frac{1 - p^M}{1 - p^{M+1}}
+$$
+
+Throughput:
+
+$$
+T = \lambda_T e^{-\lambda_T/N}
+$$
+
+中文解說：
+這些公式描述：
+
+* λₜ：所有 UE（新＋重試）
+* p：撞車率
+* γ：重試比例
+* T：吞吐量（成功的 UE）
+
+---
+
+# 13. Summary Diagram
+
+```
+                 +-------+
+bits → mapping → | IFFT | → add CP → TX
+                 +-------+
+
+RX → remove CP → +------+ → demap → bits
+                 | FFT  |
+                 +------+
+```
+
+中文解說：
+上面是 OFDM 的完整流程圖。
+
+---
+
+# 14. References
+
+* 3GPP TS 36.211 Physical Channels
+* EE4316 Lecture Notes
+* Rappaport - Wireless Communications
+* Proakis - Digital Communications
+
+---
